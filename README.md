@@ -2,7 +2,7 @@
 
 ## Hosting website on localhost:
 
-1. Clone the repo - `git clone git@github.com:Kabanosk/website_for_whisper.git`
+1. Clone the repo - `git clone https://github.com/jromerooo2/rt-whisper.git`
 2. Go to directory - `cd website_for_whisper/src`
 4. Install requirements - `pip install -r ../requirements.txt`
 5. Run the `run.py` file - `python3 run.py`
