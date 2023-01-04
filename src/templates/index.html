@@ -3,11 +3,12 @@
 <head>
     <link href="{{ url_for('static', path='/main.css') }}" rel="stylesheet">
     <title>Convertion by Whisper</title>
+
 </head>
 <body>
 <form action="/" enctype="multipart/form-data" method="post">
     
-    <input type="file" accept="audio/*" capture id="recorder" name="file" required ><br> 
+    <!-- <input type="file" accept="audio/*" capture id="recorder" name="file" required ><br>  -->
     <label for="model_type">Choose a Whisper model which you want to use:<br></label> <br>
     <select id="model_type" name="model_type">
         <option value="tiny">tiny</option>
@@ -16,21 +17,67 @@
         <option value="medium">medium</option>
         <option value="large">large</option>
     </select><br>
-    
-    <audio id="player" controls></audio><br>
+    <!-- Inputs and all the fun stuff-->
+    <p>
+        <button id="record">
+            RECORD
+        </button>
+        <button id="stopRecord" disabled>STOP</button>
+    </p>
+    <p>
+        <audio id="recordedAudio"></audio>
+    </p>
+    <!-- <audio id="player" controls></audio><br> -->
 
     <script>
-        const recorder = document.getElementById('recorder');
-        const player = document.getElementById('player');
+        let blob;
+    navigator.mediaDevices.getUserMedia({audio:true})
+      .then(stream => {handlerFunction(stream)})
 
-        recorder.addEventListener('change', function (e) {
-          const file = e.target.files[0];
-          const url = URL.createObjectURL(file);
-          player.src = url;
-        });
+        function handlerFunction(stream) {
+            rec = new MediaRecorder(stream);
+            rec.ondataavailable = e => {
+              audioChunks.push(e.data);
+              if (rec.state == "inactive"){
+                blob = new Blob(audioChunks,{type:'audio/mp3'});
+                console.log(blob.type)
+                recordedAudio.src = URL.createObjectURL(blob);
+                recordedAudio.controls=true;
+                recordedAudio.autoplay=true;
+                sendData(blob)
+              }
+            }
+          }
+        function sendData(data) {
+          let dto = new FormData();
+          dto.append('file', blob);
+          dto.append('model_type', model_type.value);
+            fetch('/', {
+                method: 'POST',
+                body: dto
+            })
+        }
+
+        record.onclick = e => {
+            e.preventDefault();
+            console.log('I was clicked')
+          record.disabled = true;
+          record.style.backgroundColor = "blue"
+          stopRecord.disabled=false;
+          audioChunks = [];
+          rec.start();
+        }
+        stopRecord.onclick = e => {
+            e.preventDefault();
+          console.log("I was clicked")
+          record.disabled = false;
+          stop.disabled=true;
+          record.style.backgroundColor = "red"
+          rec.stop();
+        }
     </script>
 
-    <input type="submit" id="submit" value="Convert audio to text">
+    <!-- <input type="submit" id="submit" value="Convert audio to text"> -->
     
     {% if text %}
         <p>{{ text }}</p>
